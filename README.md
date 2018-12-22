@@ -3,7 +3,7 @@
 ## Run
 
 ```
-git clone https://github.com/manlaig/sort_visualizer/new/master?readme=1
+git clone https://github.com/manlaig/sort_visualizer.git
 cd SortVisualizer
 javac SortVisualizer.java && java SortVisualizer
 ```

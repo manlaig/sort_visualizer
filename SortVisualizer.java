@@ -2,120 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-class Algorithms
-{
-	private static void swap(double[] arr, int index1, int index2)
-	{
-		double temp = arr[index1];
-		arr[index1] = arr[index2];
-		arr[index2] = temp;
-	}
-
-
-	static void BubbleSort(double[] arr)
-	{
-		for(int i = 0; i < arr.length; i++)
-			for(int j = i + 1; j < arr.length; j++)
-			{
-				SortVisualizer.setActiveElements(i, j);
-				if(arr[i] > arr[j])
-				{
-					swap(arr, i, j);
-					SortVisualizer.reDrawWithSleep();
-				}
-			}
-	}
-
-
-	static void SelectionSort(double[] arr)
-	{
-		double highestVal; 
-		int highestIndex;
-		for(int i = 0; i < arr.length; i++)
-		{
-			highestIndex = i;
-			highestVal = arr[i];
-			for(int j = i + 1; j < arr.length; j++)
-			{
-				SortVisualizer.setActiveElements(i, j);
-				if(arr[j] < highestVal)
-				{
-					highestIndex = j;
-					highestVal = arr[j];
-				}
-				SortVisualizer.reDrawWithSleep(15);
-			}
-			swap(arr, i, highestIndex);
-			SortVisualizer.reDrawWithSleep(15);
-		}
-	}
-
-
-	static void InsertionSort(double[] arr)
-	{
-        for (int i=1; i < arr.length; ++i) 
-        { 
-            double temp = arr[i]; 
-            int j = i - 1; 
-  
-            while (j >= 0 && arr[j] > temp) 
-            { 
-				SortVisualizer.setActiveElements(i, j);
-                arr[j + 1] = arr[j--];
-				SortVisualizer.reDrawWithSleep(15);
-            } 
-			arr[j + 1] = temp; 
-			SortVisualizer.reDrawWithSleep(15);
-        } 
-	}
-
-
-	static void MergeSort(double[] arr, int left, int right)
-	{
-		if(left >= right)
-			return;
-		int mid = (left + right) / 2;
-		MergeSort(arr, left, mid);
-		MergeSort(arr, mid + 1, right);
-		MergeHelper(arr, left, mid, right);
-	}
-
-
-	private static void MergeHelper(double[] arr, int left, int mid, int right)
-	{
-		double[] leftArr = new double[mid - left + 1];
-		double[] rightArr = new double[right - mid];
-
-		for(int i = 0; i < mid - left + 1; i++)
-			leftArr[i] = arr[left + i];
-		for(int j = 0; j < right - mid; j++)
-			rightArr[j] = arr[mid + j + 1];
-		
-		int i = 0, j = 0, index = left;
-		while(i < mid - left + 1 && j < right - mid)
-		{
-			SortVisualizer.setActiveElements(index+i, index+j);
-		 	if(leftArr[i] <= rightArr[j])
-				arr[index++] = leftArr[i++];
-			else
-				arr[index++] = rightArr[j++];
-			SortVisualizer.reDrawWithSleep();
-		}
-		while(i < mid - left + 1)
-		{
-			SortVisualizer.setActiveElements(index, index+i);
-			arr[index++] = leftArr[i++];
-			SortVisualizer.reDrawWithSleep();
-		}
-		while(j < right - mid)
-		{
-			SortVisualizer.setActiveElements(index, index+j);
-			arr[index++] = rightArr[j++];
-			SortVisualizer.reDrawWithSleep();
-		}
-	}
-}
-
 public class SortVisualizer extends JFrame
 {
 	static SortVisualizer s;
@@ -125,7 +11,7 @@ public class SortVisualizer extends JFrame
 	static int maxHeight = 20;
 	static int padding = 50;
 	/* in milliseconds */
-	static int delayBetweenSwap = 25;
+	static int delayBetweenSwap = 26;
 	/* to show visually, which elements are being inspected */
 	static int comparingLeft = 0, comparingRight = 0;
 	static boolean isSorting = false;
@@ -133,11 +19,9 @@ public class SortVisualizer extends JFrame
 	static int sortPerformance = 0;
 	static Thread t;
 
-
-	public static void main(String[] args)
+	SortVisualizer()
 	{
-		s = new SortVisualizer();
-
+		setLayout(new FlowLayout());
 		JPanel p = new JPanel();
 		JButton b1 = new JButton("Shuffle Array");
 		p.add(b1);
@@ -150,6 +34,16 @@ public class SortVisualizer extends JFrame
 				reDraw();
 			}
 		});
+
+		add(p);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setSize(600, 600);
+	}
+
+
+	public static void main(String[] args)
+	{
+		s = new SortVisualizer();
 
 		JPanel sortButtons = new JPanel();
 		JButton bubbleSort = new JButton("Bubble Sort");
@@ -240,10 +134,29 @@ public class SortVisualizer extends JFrame
 			}
 		});
 
-		s.add(p);
-		s.add(sortButtons, BorderLayout.SOUTH);
-		s.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		s.setSize(600, 600);
+		JButton quickSort = new JButton("Quick Sort");
+		sortButtons.add(quickSort);
+		quickSort.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e)
+			{
+				if(t != null && t.isAlive())
+					return;
+				t = new Thread()
+				{
+					public void run()
+					{
+						sortingStarted();
+						Algorithms.QuickSort(arr, 0, arr.length - 1);
+						comparingLeft = comparingRight = 0;
+						sortingEnded();
+						reDraw();
+					}
+				};
+				t.start();
+			}
+		});
+
+		s.add(sortButtons);
 		s.setVisible(true);
 		
 		fillArray();
@@ -319,20 +232,13 @@ public class SortVisualizer extends JFrame
 		for(int i = 1; i < arr.length; i++)
 		{
 			if(i == comparingLeft && comparingLeft != 0)
-			{
 				g.setColor(Color.red);
-				g.fillRect(padding + i * width - 10, (int)(460 - 20 * arr[i]) + padding, width, (int)(20 * arr[i]));
-			}
 			else if(i == comparingRight && comparingRight != 0)
-			{
 				g.setColor(Color.blue);
-				g.fillRect(padding + i * width - 10, (int)(460 - 20 * arr[i]) + padding, width, (int)(20 * arr[i]));
-			}
 			else
-			{
 				g.setColor(Color.black);
-				g.fillRect(padding + i * width - 10, (int)(460 - 20 * arr[i]) + padding, width, (int)(20 * arr[i]));
-			}
+
+			g.fillRect(padding + i * width - 10, (int)(475 - 20 * arr[i]) + padding, width, (int)(20 * arr[i]));
 		}
 
 		if(isSorting)

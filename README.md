@@ -8,9 +8,9 @@ cd SortVisualizer
 javac SortVisualizer.java && java SortVisualizer
 ```
 
-## Binary Sort
+## Bubble Sort
 
-<img src="https://i.imgflip.com/2pkg0w.gif" title="Binary Sort"/>
+<img src="https://i.imgflip.com/2pkg0w.gif" title="Bubble Sort"/>
 
 ## Selection Sort
 
